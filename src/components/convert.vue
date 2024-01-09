@@ -7,43 +7,70 @@ import './style.css'
 const week: string[] = ['一', '二', '三', '四', '五', '六', '日'];
 let year = ref<number>();
 year.value = new Date().getFullYear();
-type _restricted_num = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 let month = ref<number>(new Date().getMonth() + 1);
-
-
-
+watch(month, (new_month: number, old_month: number) => {
+  if (new_month > 12 || new_month < 1) {
+    month.value = old_month
+  }
+})
 let date_responsive = computed(() => {
   return year.value + "-" + month.value + "-1"
 })
-watch(month, (newq,oldq)=>{
-  console.log(newq, oldq);
-  console.log(date_responsive.value);
-  
-} )
-
-
-let days: string[] = [];
-
-const month_days = (m: number, y?: number): number => {
+const days_computed = (d?: string) => {
+  d = d || date_responsive.value;
+  let days: any[] = [],
+    first_day = new Date(d).getDay();
+  first_day = first_day === 0 ? 7 : first_day;
+  const month_days = get_month_days(new Date(d).getMonth() + 1, new Date(d).getFullYear())
+  for (let i = 0; i < first_day - 1; i++) {
+    days.push(null)
+  }
+  for (let i = 0; i < month_days; i++) {
+    days.push(i + 1)
+  }
+  return days
+}
+let days = computed(() => {
+  return days_computed(date_responsive.value)
+})
+function get_month_days(m: number, y?: number): number {
   if (m < 1 || m > 12) {
     throw console.error("Months must be within 1-12");
   }
   y = y ? y : new Date().getFullYear()
-  const t = [31, y % 4 !== 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  const t = [31, y % 4 !== 0 ? 28 : 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   return t[m - 1]
 }
-
-
-const update = () => {
-  console.log(year.value, month.value, date_responsive.value);
-
-  console.log(new Date(date_responsive.value).getDay());
+function calibration(d?: string): boolean {
+  d = d || date_responsive.value
+  const start_time = list.start_time,
+    end_time = list.end_time;
+  let state = false
+  if (auxiliary_calibration(d) >= auxiliary_calibration(start_time) && auxiliary_calibration(d) <= auxiliary_calibration(end_time)) {
+    state = true
+  }
+  return state
+}
+function auxiliary_calibration(t: string): number {
+  return new Date(t).getTime()
 }
 
+let days_state = computed(() => {
+  let state = days.value.map(item => {
+    if (!item) {
+      return false
+    }
+    return calibration(year.value + "-" + month.value + "-" + item)
+  })
+  return state
+})
+function clicks() {
+  console.log(days_state.value);
+}
+watch(days_state, (newo) => {
+  console.log(newo);
 
-
-
-
+})
 
 
 
@@ -52,7 +79,10 @@ const update = () => {
 
 <template>
   <div id="block">
-    <div id="header">日期选择</div>
+    <div id="header">日期选择
+      <p></p>
+    </div>
+
     <div id="main">
       <div id="choose_date">
         <div id="year">
@@ -60,16 +90,22 @@ const update = () => {
         </div>年
 
         <div id="month">
-          <input type="text" v-model.number="month" />
+          <input type="text" v-model.number.lazy="month" />
         </div>月
-        <button @click="update">1</button>
+        <div><button @click="clicks">1</button></div>
       </div>
       <div id="day">
         <div id="week">
           <div v-for="day in week" class="week_day">{{ day }}</div>
         </div>
         <div id="framework">
-          <div id="days" v-for="i in 31">{{ i }}</div>
+          <template v-for="(day, index) in days">
+            <div class="days" :style="{ 
+              visibility: day === null ? 'hidden' : 'visible',
+              backgroundColor: days_state[index] === true? '#582cbe': '',
+              color: days_state[index] === true? 'white': '',
+            }">{{ day }}</div>
+          </template>
         </div>
       </div>
 

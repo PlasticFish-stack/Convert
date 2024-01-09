@@ -104,20 +104,19 @@ input {
     border-right: 1px solid white;
     display: grid;
     grid-template-columns: repeat(7, 14%);
-    grid-template-rows: repeat(5, 20%);
+    grid-template-rows: repeat(6, 16%);
     justify-items: center;
     align-items: center;
 }
-#days{
-    height: 32px;
-    width: 32px;
+.days{
+    height: 35px;
+    width: 35px;
     border-radius: 45px;
     background-color: rgb(243, 241, 241);
     color: rgb(75, 73, 78);
     display: flex;
     justify-content: center;
     align-items: center;
-
 }
 #week{
     width: 90%;
