@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { list } from "./list"
 import './style.css'
 
-
+const chair_number = 10
 const week: string[] = ['一', '二', '三', '四', '五', '六', '日'];
 let year = ref<number>();
 year.value = new Date().getFullYear();
@@ -64,13 +64,31 @@ let days_state = computed(() => {
   })
   return state
 })
-function clicks() {
-  console.log(days_state.value);
-}
-watch(days_state, (newo) => {
-  console.log(newo);
+console.log(list.date);
+let days_state_level = computed(() => {
+  let level = days_state.value.map(item => {
 
+
+
+    return calibration(year.value + "-" + month.value + "-" + item)
+  })
+  return level
 })
+console.log(days_state_level);
+console.log(days_state);
+watch(days_state, (n) => {
+  console.log(n);
+})
+let open_state = ref<boolean>(false)
+function open_child(bool: boolean, day: number): void {
+  if (!bool) { return }
+  open_state.value = true
+  console.log(day);
+  
+}
+
+
+
 
 
 
@@ -92,7 +110,6 @@ watch(days_state, (newo) => {
         <div id="month">
           <input type="text" v-model.number.lazy="month" />
         </div>月
-        <div><button @click="clicks">1</button></div>
       </div>
       <div id="day">
         <div id="week">
@@ -100,17 +117,29 @@ watch(days_state, (newo) => {
         </div>
         <div id="framework">
           <template v-for="(day, index) in days">
-            <div class="days" :style="{ 
+            <div class="days" :style="{
               visibility: day === null ? 'hidden' : 'visible',
-              backgroundColor: days_state[index] === true? '#582cbe': '',
-              color: days_state[index] === true? 'white': '',
-            }">{{ day }}</div>
+              backgroundColor: days_state[index] === true ? '#582cbe' : '',
+              color: days_state[index] === true ? 'white' : '',
+            }" @click="open_child(days_state[index], day)">{{ day }}
+              <div class="icon" v-if="days_state[index] === true"></div>
+            </div>
           </template>
         </div>
+
       </div>
 
     </div>
     <div id="footer"></div>
+    <div id="mask" v-if="open_state" @click="open_state = false"></div>
+    <div id="pop_up" v-if="open_state">
+      <div id="window_header">
+        <div v-for="(_chair, index) in chair_number" :style="{marginLeft: '5px', marginRight: '5px', transform: index >= 5?'rotateZ(180deg)': '', transformOrigin: 'center center'}">
+          <img src="./chair.svg" alt="" srcset="">
+        </div>
+        <div id="table"></div>
+      </div>
+    </div>
   </div>
 </template>
 

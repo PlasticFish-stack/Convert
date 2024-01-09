@@ -12,6 +12,8 @@
     background-color: white;
     border-radius: 15px;
     align-items: center;
+    position: relative;
+    overflow: hidden;
 }
 
 #header {
@@ -35,7 +37,8 @@
     align-items: center;
     position: relative;
 }
-#main::after{
+
+#main::after {
     content: '';
     position: absolute;
     height: 100%;
@@ -89,26 +92,29 @@ input {
     text-align: center;
     outline: none;
 }
-#day{
+
+#day {
     flex-direction: column;
-    display: flex; 
+    display: flex;
     width: 100%;
     flex: 1;
     align-items: center;
-    
+
 }
-#framework{
+
+#framework {
     height: 90%;
     width: 90%;
     border-left: 1px solid white;
     border-right: 1px solid white;
     display: grid;
     grid-template-columns: repeat(7, 14%);
-    grid-template-rows: repeat(6, 16%);
+    grid-template-rows: repeat(6, 15%);
     justify-items: center;
     align-items: center;
 }
-.days{
+
+.days {
     height: 35px;
     width: 35px;
     border-radius: 45px;
@@ -117,8 +123,21 @@ input {
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
+    position: relative;
 }
-#week{
+
+.icon {
+    position: absolute;
+    height: 9px;
+    width: 9px;
+    right: -2px;
+    top: -2px;
+    border-radius: 45px;
+    background-color: rgb(250, 72, 72);
+}
+
+#week {
     width: 90%;
     display: grid;
     grid-template-columns: repeat(7, 14%);
@@ -126,7 +145,8 @@ input {
     margin-bottom: 5px;
     justify-items: center
 }
-.week_day{
+
+.week_day {
     height: 32px;
     width: 32px;
     border-radius: 45px;
@@ -135,5 +155,55 @@ input {
     display: flex;
     justify-content: center;
     align-items: center;
+}
 
+#pop_up {
+    height: 70%;
+    width: 90%;
+    background-color: white;
+    border-radius: 12px;
+    position: absolute;
+    z-index: 2;
+    transform: translateY(-45%);
+    top: 50%;
+}
+
+#mask {
+    content: '';
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    background-color: rgba(58, 58, 58, 0.795);
+    background-attachment: fixed;
+    filter: blur(0px);
+}
+
+#window_header {
+    margin-top: 10px;
+    height: 120px;
+    width: 100%;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    justify-items: center;
+    grid-template-columns: repeat(5, 16%);
+    grid-template-areas: 'a b c d e'
+        '. . f . .'
+        'g h i j k'
+    ;
+    grid-template-rows: 1fr 2fr 1fr;
+}
+
+#table {
+    width: 95%;
+    height: 90%;
+    grid-area: f;
+    grid-column: 1 / span 5;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(245, 185, 21);
 }
