@@ -64,7 +64,6 @@ let days_state = computed(() => {
   })
   return state
 })
-console.log(list.date);
 let days_state_level = computed(() => {
   let level = days_state.value.map(item => {
 
@@ -84,12 +83,40 @@ function open_child(bool: boolean, day: number): void {
   if (!bool) { return }
   open_state.value = true
   console.log(day);
-  
+
+
+  ///////
 }
-
-
-
-
+let time_list:any = list.date
+let time:any = ref(null)
+function list_display(index: any){
+  time.value = time_list[index]
+}
+let all_time_list: any[] = [];
+function reservation_date(){
+  time_list.forEach((item: any) => {
+    if(item.reservation_log){
+      all_time_list.push(...item.reservation_log)
+    }
+  })
+  let reg = /(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)/g
+  let result = [],
+      res;
+  console.log('1');
+  all_time_list.forEach((_item: any, index: any) => {
+    while(res = reg.exec(all_time_list[index])){
+    if(+res[1] === year.value && +res[2] === month.value){
+      result.push(+res[3])
+    }
+  }
+  })
+  
+  console.log(result, 'res');
+  console.log( reg.exec(all_time_list[0]));
+  console.log( reg.exec(all_time_list[0]));
+}
+reservation_date();
+console.log(days.value,'days');
 
 
 
@@ -134,11 +161,16 @@ function open_child(bool: boolean, day: number): void {
     <div id="mask" v-if="open_state" @click="open_state = false"></div>
     <div id="pop_up" v-if="open_state">
       <div id="window_header">
-        <div v-for="(_chair, index) in chair_number" :style="{marginLeft: '5px', marginRight: '5px', transform: index >= 5?'rotateZ(180deg)': '', transformOrigin: 'center center'}">
+        <div v-for="(_chair, index) in chair_number" class="chair" @click="list_display(index)">
           <img src="./chair.svg" alt="" srcset="">
         </div>
         <div id="table"></div>
       </div>
+      <div id="window_main">
+
+        <div v-if="time"> {{ time.reservation_log }} </div>
+      </div>
+      <div id="window_footer"></div>
     </div>
   </div>
 </template>

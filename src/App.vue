@@ -10,6 +10,6 @@ import convert from "./components/convert.vue"
 
 <style scoped>
   .convert{
-    margin-top: 20px;
+    
   }
 </style>
