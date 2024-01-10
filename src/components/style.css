@@ -5,6 +5,7 @@
 }
 
 #block {
+    top: 0;
     height: 600px;
     width: 400px;
     display: flex;
@@ -134,7 +135,7 @@ input {
     right: -2px;
     top: -2px;
     border-radius: 45px;
-    background-color: rgb(26, 175, 100);
+    border: 1px solid rgb(238, 213, 213);
 }
 
 #week {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, reactive } from 'vue'
 import { list } from "./list"
 import './style.css'
 
@@ -64,59 +64,52 @@ let days_state = computed(() => {
   })
   return state
 })
-let days_state_level = computed(() => {
-  let level = days_state.value.map(item => {
+console.log(days_state.value,'days');
 
-
-
-    return calibration(year.value + "-" + month.value + "-" + item)
-  })
-  return level
-})
-console.log(days_state_level);
-console.log(days_state);
-watch(days_state, (n) => {
-  console.log(n);
-})
 let open_state = ref<boolean>(false)
-function open_child(bool: boolean, day: number): void {
+function open_child(bool: boolean): void {
   if (!bool) { return }
   open_state.value = true
-  console.log(day);
-
-
-  ///////
-}
-let time_list:any = list.date
-let time:any = ref(null)
-function list_display(index: any){
+}//打开小窗
+let time_list: any = list.date//初始化数据
+let time: any = ref(null)
+function list_display(index: any) {
+  console.log(time_list[index]);
   time.value = time_list[index]
-}
-let all_time_list: any[] = [];
-function reservation_date(){
+}//椅子的预约信息
+
+
+let icon_level = computed(() => {
+  let all_time_list: any[] = [];
+  let result: any = [];
   time_list.forEach((item: any) => {
-    if(item.reservation_log){
+    if (item.reservation_log) {
       all_time_list.push(...item.reservation_log)
     }
   })
-  let reg = /(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)/g
-  let result = [],
-      res;
-  console.log('1');
+  let reg = /(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)\,(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)/g
+  let res;
   all_time_list.forEach((_item: any, index: any) => {
-    while(res = reg.exec(all_time_list[index])){
-    if(+res[1] === year.value && +res[2] === month.value){
-      result.push(+res[3])
+    while (res = reg.exec(all_time_list[index])) {
+      if (+res[1] === year.value && +res[2] === month.value) {
+        result.push(+res[3])
+      }
     }
-  }
   })
-  
-  console.log(result, 'res');
-  console.log( reg.exec(all_time_list[0]));
-  console.log( reg.exec(all_time_list[0]));
-}
-reservation_date();
-console.log(days.value,'days');
+  let arr = days.value.map((item) => {
+    if (result.indexOf(item) === -1) { return null }
+    let casual_val = item
+    item = result.reduce((prev: number, cur: any) => {
+      if (cur === casual_val) { return prev + 1 }
+      return prev
+    }, 0)
+    return item
+  })
+  return arr
+})//计算每天有多少预约次数
+
+
+
 
 
 
@@ -149,7 +142,9 @@ console.log(days.value,'days');
               backgroundColor: days_state[index] === true ? '#582cbe' : '',
               color: days_state[index] === true ? 'white' : '',
             }" @click="open_child(days_state[index], day)">{{ day }}
-              <div class="icon" v-if="days_state[index] === true"></div>
+              <div class="icon" v-if="icon_level[index] > 0" :style="{
+                backgroundColor: icon_level[index] > 3 ? icon_level[index] > 5 ? '#e43e32' : '#f7e92c' : '#1aaf64'
+              }"></div>
             </div>
           </template>
         </div>
