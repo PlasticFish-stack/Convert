@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, reactive } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { list } from "./list"
 import './style.css'
 
@@ -64,31 +64,45 @@ let days_state = computed(() => {
   })
   return state
 })
-console.log(days_state.value,'days');
 
 let open_state = ref<boolean>(false)
-function open_child(bool: boolean): void {
+let select_days = ref()
+function open_child(bool: boolean, days: number): void {
   if (!bool) { return }
+  select_days.value = days
   open_state.value = true
 }//打开小窗
 let time_list: any = list.date//初始化数据
-let time: any = ref(null)
+let time: any = ref(null);
+let display = ref();
 function list_display(index: any) {
-  console.log(time_list[index]);
-  time.value = time_list[index]
+  let reg = /^(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)\,(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)$/;
+  time.value = time_list[index];
+  if(time.value.reservation_log === null){
+    return display.value = "无预约"
+  }
+  console.log(time.value.reservation_log, 'log');
+  [...time.value.reservation_log].forEach((item) => {
+ 
+    console.log(reg.exec(item));
+  })
+
+
+
+
 }//椅子的预约信息
 
 
 let icon_level = computed(() => {
-  let all_time_list: any[] = [];
-  let result: any = [];
+  let all_time_list: any[] = [],
+      result: any = [],
+      reg = /(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)\,(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)/g,
+      res;
   time_list.forEach((item: any) => {
     if (item.reservation_log) {
       all_time_list.push(...item.reservation_log)
     }
   })
-  let reg = /(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)\,(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)/g
-  let res;
   all_time_list.forEach((_item: any, index: any) => {
     while (res = reg.exec(all_time_list[index])) {
       if (+res[1] === year.value && +res[2] === month.value) {
@@ -111,7 +125,19 @@ let icon_level = computed(() => {
 
 
 
+function regs(){
+  let i = 'abcd';
+  let o = /(\w+?)/g;
+  let io,
+      l = []
 
+  while(io = o.exec(i)){
+    l.push(io[0])
+  }
+  console.log(l);
+  
+}
+regs()
 
 </script>
 
@@ -163,7 +189,7 @@ let icon_level = computed(() => {
       </div>
       <div id="window_main">
 
-        <div v-if="time"> {{ time.reservation_log }} </div>
+        <div v-if="time"> {{ display }} </div>
       </div>
       <div id="window_footer"></div>
     </div>
