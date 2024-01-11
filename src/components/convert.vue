@@ -74,18 +74,33 @@ function open_child(bool: boolean, days: number): void {
 }//打开小窗
 let time_list: any = list.date//初始化数据
 let time: any = ref(null);
-let display = ref();
+let display = ref<any[]>([]);
 function list_display(index: any) {
-  let reg = /^(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)\,(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)$/;
+  let reg = /^(?<start_year>\d+)\-(?<start_month>\d+)\-(?<start_day>\d+)\s(?<start_hour>\d+)\:(?<start_minutes>\d+)\,(?<end_year>\d+)\-(?<end_month>\d+)\-(?<end_day>\d+)\s(?<end_hour>\d+)\:(?<end_minutes>\d+)$/;
   time.value = time_list[index];
-  if(time.value.reservation_log === null){
-    return display.value = "无预约"
+  display.value = [];
+  if (time.value === undefined) {
+    return display.value.push("该椅子暂时不能预约")
   }
-  console.log(time.value.reservation_log, 'log');
-  [...time.value.reservation_log].forEach((item) => {
- 
-    console.log(reg.exec(item));
-  })
+  if (time.value.reservation_log === null) {
+    return display.value.push("无预约")
+  }
+  time.value.reservation_log.forEach((item: any) => {
+    if (!reg.exec(item)) {
+      throw console.log(index + "号椅子预约信息有误，请联系管理员")
+    }
+    let t = {...reg.exec(item)?.groups};
+    if(+(t.start_year) === year.value && +(t.end_year) === year.value &&
+       +(t.start_month) === month.value && +(t.end_month) === month.value &&
+       +(t.start_day) === select_days.value && +(t.end_day) === select_days.value 
+       ){
+        display.value.push(t.start_hour+":"+t.start_minutes+ " 到 " + t.end_hour+":"+t.end_minutes + "被预约")
+    }
+    
+
+  });
+
+
 
 
 
@@ -95,9 +110,9 @@ function list_display(index: any) {
 
 let icon_level = computed(() => {
   let all_time_list: any[] = [],
-      result: any = [],
-      reg = /(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)\,(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)/g,
-      res;
+    result: any = [],
+    reg = /(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)\,(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)/g,
+    res;
   time_list.forEach((item: any) => {
     if (item.reservation_log) {
       all_time_list.push(...item.reservation_log)
@@ -122,22 +137,6 @@ let icon_level = computed(() => {
   return arr
 })//计算每天有多少预约次数
 
-
-
-
-function regs(){
-  let i = 'abcd';
-  let o = /(\w+?)/g;
-  let io,
-      l = []
-
-  while(io = o.exec(i)){
-    l.push(io[0])
-  }
-  console.log(l);
-  
-}
-regs()
 
 </script>
 
@@ -189,7 +188,7 @@ regs()
       </div>
       <div id="window_main">
 
-        <div v-if="time"> {{ display }} </div>
+        <div v-for="item in display"> {{ item }} </div>
       </div>
       <div id="window_footer"></div>
     </div>
