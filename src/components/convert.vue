@@ -76,8 +76,20 @@ let time_list: any = list.date//初始化数据
 let time: any = ref(null);
 let display = ref<any[]>([]);
 function list_display(index: any) {
-  let reg = /^(?<start_year>\d+)\-(?<start_month>\d+)\-(?<start_day>\d+)\s(?<start_hour>\d+)\:(?<start_minutes>\d+)\,(?<end_year>\d+)\-(?<end_month>\d+)\-(?<end_day>\d+)\s(?<end_hour>\d+)\:(?<end_minutes>\d+)$/;
+  let reg: RegExp = /^(?<start_year>\d+)\-(?<start_month>\d+)\-(?<start_day>\d+)\s(?<start_hour>\d+)\:(?<start_minutes>\d+)\,(?<end_year>\d+)\-(?<end_month>\d+)\-(?<end_day>\d+)\s(?<end_hour>\d+)\:(?<end_minutes>\d+)$/;
   time.value = time_list[index];
+  const duration: number = list.time_duration
+  const opening_time = list.opening_time
+  let opening_reg: any = /(?<start_hour>\d+)\:(?<start_minutes>\d+)\-(?<end_hour>\d+?)\:(?<end_minutes>\d+)/g.exec(opening_time),
+      exec_time = {
+        start_hour: opening_reg?.groups.start_hour,
+        start_minutes: opening_reg?.groups.start_minutes,
+        start_all_minutes: +opening_reg?.groups.start_hour * 60 + +opening_reg?.groups.start_minutes,
+        end_hour: opening_reg?.groups.end_hour,
+        end_minutes: opening_reg?.groups.end_minutes,
+        end_all_minutes: +opening_reg?.groups.end_hour * 60 + +opening_reg?.groups.end_minutes,
+      }
+  console.log(exec_time);
   display.value = [];
   if (time.value === undefined) {
     return display.value.push("该椅子暂时不能预约")
@@ -89,18 +101,24 @@ function list_display(index: any) {
     if (!reg.exec(item)) {
       throw console.log(index + "号椅子预约信息有误，请联系管理员")
     }
-    let t = {...reg.exec(item)?.groups};
-    if(+(t.start_year) === year.value && +(t.end_year) === year.value &&
-       +(t.start_month) === month.value && +(t.end_month) === month.value &&
-       +(t.start_day) === select_days.value && +(t.end_day) === select_days.value 
-       ){
-        display.value.push(t.start_hour+":"+t.start_minutes+ " 到 " + t.end_hour+":"+t.end_minutes + "被预约")
+    let t = { ...reg.exec(item)?.groups };
+    if (+(t.start_year) === year.value && +(t.end_year) === year.value &&
+      +(t.start_month) === month.value && +(t.end_month) === month.value &&
+      +(t.start_day) === select_days.value && +(t.end_day) === select_days.value
+    ) {
+      
+      display.value.push(t.start_hour + ":" + t.start_minutes + " 到 " + t.end_hour + ":" + t.end_minutes + "被预约")
+      console.log(t);
+      if((+t.start_hour * 60 + +t.start_minutes - exec_time.start_all_minutes) > 60){
+        console.log(`${exec_time.start_hour}:${exec_time.start_minutes}到${t.start_hour}:${t.start_minutes}时间段可预约`);
+      }
+      console.log();
     }
-    
-
   });
-
-
+  if(display.value.length === 0){
+    return display.value.push("无预约")
+  }
+  
 
 
 
