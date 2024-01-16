@@ -3,7 +3,8 @@ interface _list {
     start_time: string,
     end_time: string,
     opening_time: string,
-    time_duration: number
+    time_duration: number, 
+    intervals: number
 }
 export const list: _list = {
     date: [
@@ -16,5 +17,6 @@ export const list: _list = {
     start_time: "2024-1-2",
     end_time: "2024-1-25",
     opening_time: "08:30-20:30",
-    time_duration: 60
+    time_duration: 60,
+    intervals: 20
 }

@@ -2,17 +2,44 @@
 import { ref, computed, watch } from 'vue'
 import { list } from "./list"
 import './style.css'
+interface _list {
+    date: object[],
+    start_time: string,
+    end_time: string,
+    opening_time: string,
+    time_duration: number, 
+    intervals: number
+}
+const chair_number = list.date.length;//椅子数量
+const { date, start_time, end_time, opening_time, time_duration, intervals }:_list = { ...list };
+console.log(date, start_time, end_time, opening_time, time_duration, intervals);
 
-const chair_number = 10
-const week: string[] = ['一', '二', '三', '四', '五', '六', '日'];
-let year = ref<number>();
-year.value = new Date().getFullYear();
-let month = ref<number>(new Date().getMonth() + 1);
+const week: string[] = ['一', '二', '三', '四', '五', '六', '日'];//模板显示
+
+
+let year = ref<number>(new Date().getFullYear());//当前年份
+let month = ref<number>(new Date().getMonth() + 1);//当前月份
+
+
 watch(month, (new_month: number, old_month: number) => {
-  if (new_month > 12 || new_month < 1) {
+  if (new_month > 12 || new_month < 1 || typeof(new_month) !== "number") {
     month.value = old_month
   }
-})
+})//防止用户输入小于1大于12的月份
+
+let days_state = computed(() => {
+  let state = days.value.map(item => {
+    if (!item) {
+      return false
+    }
+    return calibration(year.value + "-" + month.value + "-" + item)
+  })
+  return state
+})//计算哪些日期在起始结束日期内
+
+
+
+
 let date_responsive = computed(() => {
   return year.value + "-" + month.value + "-1"
 })
@@ -43,54 +70,58 @@ function get_month_days(m: number, y?: number): number {
 }
 function calibration(d?: string): boolean {
   d = d || date_responsive.value
-  const start_time = list.start_time,
-    end_time = list.end_time;
+
   let state = false
   if (auxiliary_calibration(d) >= auxiliary_calibration(start_time) && auxiliary_calibration(d) <= auxiliary_calibration(end_time)) {
     state = true
   }
   return state
-}
+}//对比时间戳来确定开始结束之间的日期
+
+/**
+ * 返回时间戳
+ * @param t
+ * e.g:"1990-1-1"
+ * @return "631123200000"
+ */
 function auxiliary_calibration(t: string): number {
   return new Date(t).getTime()
 }
 
-let days_state = computed(() => {
-  let state = days.value.map(item => {
-    if (!item) {
-      return false
-    }
-    return calibration(year.value + "-" + month.value + "-" + item)
-  })
-  return state
-})
+
+
+
+
 
 let open_state = ref<boolean>(false)
-let select_days = ref()
+let select_days = ref() //
 function open_child(bool: boolean, days: number): void {
   if (!bool) { return }
   select_days.value = days
   open_state.value = true
 }//打开小窗
+
+
+
 let time_list: any = list.date//初始化数据
 let time: any = ref(null);
 let display = ref<any[]>([]);
+let opening_reg: any = /(?<start_hour>\d+)\:(?<start_minutes>\d+)\-(?<end_hour>\d+?)\:(?<end_minutes>\d+)/g.exec(opening_time),
+  exec_time = {
+    start_hour: opening_reg?.groups.start_hour,
+    start_minutes: opening_reg?.groups.start_minutes,
+    start_all_minutes: +opening_reg?.groups.start_hour * 60 + +opening_reg?.groups.start_minutes,
+    end_hour: opening_reg?.groups.end_hour,
+    end_minutes: opening_reg?.groups.end_minutes,
+    end_all_minutes: +opening_reg?.groups.end_hour * 60 + +opening_reg?.groups.end_minutes,
+  }
 function list_display(index: any) {
   let reg: RegExp = /^(?<start_year>\d+)\-(?<start_month>\d+)\-(?<start_day>\d+)\s(?<start_hour>\d+)\:(?<start_minutes>\d+)\,(?<end_year>\d+)\-(?<end_month>\d+)\-(?<end_day>\d+)\s(?<end_hour>\d+)\:(?<end_minutes>\d+)$/;
   time.value = time_list[index];
-  const duration: number = list.time_duration
-  const opening_time = list.opening_time
-  let opening_reg: any = /(?<start_hour>\d+)\:(?<start_minutes>\d+)\-(?<end_hour>\d+?)\:(?<end_minutes>\d+)/g.exec(opening_time),
-      exec_time = {
-        start_hour: opening_reg?.groups.start_hour,
-        start_minutes: opening_reg?.groups.start_minutes,
-        start_all_minutes: +opening_reg?.groups.start_hour * 60 + +opening_reg?.groups.start_minutes,
-        end_hour: opening_reg?.groups.end_hour,
-        end_minutes: opening_reg?.groups.end_minutes,
-        end_all_minutes: +opening_reg?.groups.end_hour * 60 + +opening_reg?.groups.end_minutes,
-      }
+
   console.log(exec_time);
   display.value = [];
+  let filtration_time:any[] = [];
   if (time.value === undefined) {
     return display.value.push("该椅子暂时不能预约")
   }
@@ -98,6 +129,7 @@ function list_display(index: any) {
     return display.value.push("无预约")
   }
   time.value.reservation_log.forEach((item: any) => {
+    
     if (!reg.exec(item)) {
       throw console.log(index + "号椅子预约信息有误，请联系管理员")
     }
@@ -106,19 +138,33 @@ function list_display(index: any) {
       +(t.start_month) === month.value && +(t.end_month) === month.value &&
       +(t.start_day) === select_days.value && +(t.end_day) === select_days.value
     ) {
-      
-      display.value.push(t.start_hour + ":" + t.start_minutes + " 到 " + t.end_hour + ":" + t.end_minutes + "被预约")
-      console.log(t);
-      if((+t.start_hour * 60 + +t.start_minutes - exec_time.start_all_minutes) > 60){
-        console.log(`${exec_time.start_hour}:${exec_time.start_minutes}到${t.start_hour}:${t.start_minutes}时间段可预约`);
-      }
-      console.log();
+      console.log(item, 'item');
+      filtration_time.push(item)
     }
+    
+    
   });
-  if(display.value.length === 0){
+  // display.value.push(t.start_hour + ":" + t.start_minutes + " 到 " + t.end_hour + ":" + t.end_minutes + "被预约")
+  //     console.log(t);
+  //     if ((+t.start_hour * 60 + +t.start_minutes - exec_time.start_all_minutes) > 60) {
+  //       console.log(`${exec_time.start_hour}:${exec_time.start_minutes}到${t.start_hour}:${t.start_minutes}时间段可预约`);
+  //     }
+  //     console.log();
+  console.log(filtration_time);
+  for(let count = 0; count < filtration_time.length; count++){
+    let exe = /((\d+)\:(\d+))+/g
+    
+    console.log(exe.exec(filtration_time[count]));
+    
+    if(count = filtration_time.length-1){
+
+    }
+  }
+  if (display.value.length === 0) {
     return display.value.push("无预约")
   }
-  
+
+
 
 
 
@@ -138,7 +184,9 @@ let icon_level = computed(() => {
   })
   all_time_list.forEach((_item: any, index: any) => {
     while (res = reg.exec(all_time_list[index])) {
-      if (+res[1] === year.value && +res[2] === month.value) {
+      if (+res[1] === year.value && +res[2] === month.value
+        && auxiliary_calibration(`${res[1]}-${res[2]}-${res[3]}`) > auxiliary_calibration(start_time)
+        && auxiliary_calibration(`${res[6]}-${res[7]}-${res[8]}`) < auxiliary_calibration(end_time)) {
         result.push(+res[3])
       }
     }
@@ -153,7 +201,7 @@ let icon_level = computed(() => {
     return item
   })
   return arr
-})//计算每天有多少预约次数
+})//计算每天有多少预约次数,返回预约状态拥挤程度
 
 
 </script>
