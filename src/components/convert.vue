@@ -2,16 +2,17 @@
 import { ref, computed, watch } from 'vue'
 import { list } from "./list"
 import './style.css'
+
 interface _list {
-    date: object[],
-    start_time: string,
-    end_time: string,
-    opening_time: string,
-    time_duration: number, 
-    intervals: number
+  date: object[],
+  start_time: string,
+  end_time: string,
+  opening_time: string,
+  time_duration: number,
+  intervals: number
 }
 const chair_number = list.date.length;//椅子数量
-const { date, start_time, end_time, opening_time, time_duration, intervals }:_list = { ...list };
+const { date, start_time, end_time, opening_time, time_duration, intervals }: _list = { ...list };
 console.log(date, start_time, end_time, opening_time, time_duration, intervals);
 
 const week: string[] = ['一', '二', '三', '四', '五', '六', '日'];//模板显示
@@ -22,7 +23,7 @@ let month = ref<number>(new Date().getMonth() + 1);//当前月份
 
 
 watch(month, (new_month: number, old_month: number) => {
-  if (new_month > 12 || new_month < 1 || typeof(new_month) !== "number") {
+  if (new_month > 12 || new_month < 1 || typeof (new_month) !== "number") {
     month.value = old_month
   }
 })//防止用户输入小于1大于12的月份
@@ -103,7 +104,6 @@ function open_child(bool: boolean, days: number): void {
 
 
 
-let time_list: any = list.date//初始化数据
 let time: any = ref(null);
 let display = ref<any[]>([]);
 let opening_reg: any = /(?<start_hour>\d+)\:(?<start_minutes>\d+)\-(?<end_hour>\d+?)\:(?<end_minutes>\d+)/g.exec(opening_time),
@@ -115,13 +115,16 @@ let opening_reg: any = /(?<start_hour>\d+)\:(?<start_minutes>\d+)\-(?<end_hour>\
     end_minutes: opening_reg?.groups.end_minutes,
     end_all_minutes: +opening_reg?.groups.end_hour * 60 + +opening_reg?.groups.end_minutes,
   }
+
+
+
 function list_display(index: any) {
   let reg: RegExp = /^(?<start_year>\d+)\-(?<start_month>\d+)\-(?<start_day>\d+)\s(?<start_hour>\d+)\:(?<start_minutes>\d+)\,(?<end_year>\d+)\-(?<end_month>\d+)\-(?<end_day>\d+)\s(?<end_hour>\d+)\:(?<end_minutes>\d+)$/;
-  time.value = time_list[index];
+  time.value = date[index];
 
   console.log(exec_time);
   display.value = [];
-  let filtration_time:any[] = [];
+  let filtration_time: any[] = [];
   if (time.value === undefined) {
     return display.value.push("该椅子暂时不能预约")
   }
@@ -129,7 +132,7 @@ function list_display(index: any) {
     return display.value.push("无预约")
   }
   time.value.reservation_log.forEach((item: any) => {
-    
+
     if (!reg.exec(item)) {
       throw console.log(index + "号椅子预约信息有误，请联系管理员")
     }
@@ -141,8 +144,8 @@ function list_display(index: any) {
       console.log(item, 'item');
       filtration_time.push(item)
     }
-    
-    
+
+
   });
   // display.value.push(t.start_hour + ":" + t.start_minutes + " 到 " + t.end_hour + ":" + t.end_minutes + "被预约")
   //     console.log(t);
@@ -150,19 +153,43 @@ function list_display(index: any) {
   //       console.log(`${exec_time.start_hour}:${exec_time.start_minutes}到${t.start_hour}:${t.start_minutes}时间段可预约`);
   //     }
   //     console.log();
-  console.log(filtration_time);
-  for(let count = 0; count < filtration_time.length; count++){
-    let exe = /((\d+)\:(\d+))+/g
-    
-    console.log(exe.exec(filtration_time[count]));
-    
-    if(count = filtration_time.length-1){
-
+  let temp_reg: RegExp = /((\d+)\:(\d+))+/g
+  let temp_opening_time = temp_reg.exec(opening_time)
+  if (!temp_opening_time) {
+    return
+  }
+  const temp_first_val: any[] = [+temp_opening_time[2] * 60 + +temp_opening_time[3]];
+  
+  temp_opening_time = temp_reg.exec(opening_time)
+  if (!temp_opening_time) {
+    return
+  }
+  const temp_second_val: any[] = [+temp_opening_time[2] * 60 + +temp_opening_time[3]];
+  temp_reg.lastIndex = 0
+  for (let count = 0; count < filtration_time.length; count++) {
+    let temp_res = temp_reg.exec(filtration_time[count])
+    if (!temp_res) {
+      return
     }
+    temp_second_val.splice(temp_first_val.length - 1, 0, +temp_res[2] * 60 + +temp_res[3])
+    temp_res = temp_reg.exec(filtration_time[count])
+    if (!temp_res) {
+      return
+    }
+    temp_first_val.push(+temp_res[2] * 60 + +temp_res[3])
+    temp_reg.lastIndex = 0
   }
-  if (display.value.length === 0) {
-    return display.value.push("无预约")
-  }
+  let first_val = temp_first_val.map((item) => {
+    return reset_number_date(item)
+  })
+  let second_val = temp_second_val.map((item) => {
+    return reset_number_date(item)
+  })
+
+  console.log(first_val, second_val);
+  // if (temp_val.length === 0) {
+  //   return display.value.push("无预约")
+  // }
 
 
 
@@ -171,13 +198,18 @@ function list_display(index: any) {
 
 }//椅子的预约信息
 
+function reset_number_date(num){
+  return (num / 60).toString().replace(/\.\d+$/, '') + ":" + num % 60
+}
+
+
 
 let icon_level = computed(() => {
   let all_time_list: any[] = [],
     result: any = [],
     reg = /(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)\,(\d+)\-(\d+)\-(\d+)\s(\d+)\:(\d+)/g,
     res;
-  time_list.forEach((item: any) => {
+  date.forEach((item: any) => {
     if (item.reservation_log) {
       all_time_list.push(...item.reservation_log)
     }

@@ -18,5 +18,5 @@ export const list: _list = {
     end_time: "2024-1-25",
     opening_time: "08:30-20:30",
     time_duration: 60,
-    intervals: 20
+    intervals: 3
 }
